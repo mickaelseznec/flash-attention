@@ -703,9 +703,9 @@ mha_fwd(at::Tensor &q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seq
     params.page_size = page_size;
     params.num_pages = num_pages;
 
-    params.num_splits = num_splits <= 0 ? get_num_splits(params) : num_splits;
     // Always enable PackGQA for Split, and get_pack_gqa requires params.num_splits to decide
     params.pack_gqa = pack_gqa_.has_value() ? pack_gqa_.value() : get_pack_gqa(params);
+    params.num_splits = num_splits <= 0 ? get_num_splits(params) : num_splits;
 
     if (k_new_.has_value()) {
         at::Tensor k_new, v_new;
