@@ -490,9 +490,9 @@ mha_fwd(at::Tensor &q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seq
         std::optional<const at::Tensor> &leftpad_k_, // b
         std::optional<const at::Tensor> &rotary_cos_, // seqlen_ro x (rotary_dim / 2)
         std::optional<const at::Tensor> &rotary_sin_, // seqlen_ro x (rotary_dim / 2)
-        std::optional<at::Tensor> &q_descale_,  // (b, h_k), not (b, h) or 1
-        std::optional<at::Tensor> &k_descale_,  // (b, h_k) or 1
-        std::optional<at::Tensor> &v_descale_,  // (b, h_k) or 1
+        std::optional<at::Tensor> &q_descale_,  // (b, h_k), not (b, h) or scalar
+        std::optional<at::Tensor> &k_descale_,  // (b, h_k) or scalar
+        std::optional<at::Tensor> &v_descale_,  // (b, h_k) or scalar
         float const softmax_scale,
         bool is_causal,
         int window_size_left,
@@ -860,7 +860,7 @@ mha_fwd(at::Tensor &q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seq
             auto q_descale = q_descale_.value();
             CHECK_DEVICE(q_descale);
             TORCH_CHECK(q_descale.sizes() == torch::IntArrayRef({batch_size, num_heads_k}) ||
-                q_descale.sizes() == 1, "q_descale must have shape (batch_size, num_heads_k) or (1)");
+                q_descale.dim() == 0, "q_descale must have shape (batch_size, num_heads_k) or be a scalar");
             params.q_descale_ptr = q_descale.data_ptr<float>();
             if (q_descale.sizes() == torch::IntArrayRef({batch_size, num_heads_k})) {
               params.q_descale_batch_stride = q_descale.stride(0);
@@ -876,7 +876,7 @@ mha_fwd(at::Tensor &q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seq
             auto k_descale = k_descale_.value();
             CHECK_DEVICE(k_descale);
             TORCH_CHECK(k_descale.sizes() == torch::IntArrayRef({batch_size, num_heads_k}) ||
-                k_descale.sizes() == 1, "k_descale must have shape (batch_size, num_heads_k) or (1)");
+                k_descale.dim() == 0, "k_descale must have shape (batch_size, num_heads_k) or be a scalar");
             params.k_descale_ptr = k_descale.data_ptr<float>();
             if (k_descale.sizes() == torch::IntArrayRef({batch_size, num_heads_k})) {
               params.k_descale_batch_stride = k_descale.stride(0);
@@ -892,7 +892,7 @@ mha_fwd(at::Tensor &q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seq
             auto v_descale = v_descale_.value();
             CHECK_DEVICE(v_descale);
             TORCH_CHECK(v_descale.sizes() == torch::IntArrayRef({batch_size, num_heads_k}) ||
-                v_descale.sizes() == 1, "v_descale must have shape (batch_size, num_heads_k) or (1)");
+                v_descale.dim() == 0, "v_descale must have shape (batch_size, num_heads_k) or be a scalar");
             params.v_descale_ptr = v_descale.data_ptr<float>();
             if (v_descale.sizes() == torch::IntArrayRef({batch_size, num_heads_k})) {
               params.v_descale_batch_stride = v_descale.stride(0);
